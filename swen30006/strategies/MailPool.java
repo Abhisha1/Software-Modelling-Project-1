@@ -85,26 +85,32 @@ public class MailPool implements IMailPool {
 			i.remove();       // remove from mailPool queue
 			}
 			catch( ItemTooHeavyException e) {
-				System.out.println(pool.size());
-				System.out.println(j.hasNext());
-				if(j.hasNext()) {
-					int robotsNeeded = 1;
-					MailItem nextMail = j.next().mailItem;
-					if (nextMail.getWeight() <=2600 && nextMail.getWeight()>2000) {
-						robotsNeeded = 2;
+				j = pool.listIterator();
+				int robotsNeeded = 1;
+				MailItem nextMail = j.next().mailItem;
+				if (nextMail.getWeight() <=2600 && nextMail.getWeight()>2000) {
+					robotsNeeded = 2;
+				}
+				else if (nextMail.getWeight() <=3000) {
+					robotsNeeded = 3;
+				}
+				nextMail.setNTrips(robotsNeeded);
+				Team team = new Team(robotsNeeded);
+				team.addRobot(robot);
+				for (int k=1; k < robotsNeeded; k++) {
+					if(i.hasNext()) {
+						robot = i.next();
+						team.addRobot(robot);
+						i.remove();
 					}
-					else if (nextMail.getWeight() <=3000) {
-						robotsNeeded = 3;
+				}
+				if (team.getRobots().size() != robotsNeeded) {
+					System.out.println("not enough avaluiable robots");
+					for(Robot r: team.getRobots()) {
+						i.add(r);
 					}
-					nextMail.setNumOfTrips(robotsNeeded);
-					Team team = new Team(robotsNeeded);
-					for (int k=0; k < robotsNeeded; k++) {
-						if(i.hasNext()) {
-							robot = i.next();
-							team.addRobot(robot);
-							i.remove();
-						}
-					}
+				}
+				else {
 					team.handleTeamHand(nextMail);	
 					for (Robot r: team.getRobots()) {
 						r.dispatch();

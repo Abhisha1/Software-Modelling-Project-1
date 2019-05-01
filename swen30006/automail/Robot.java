@@ -88,12 +88,10 @@ public class Robot {
     		case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
-    				this.deliveryItem.setNumOfTrips(this.deliveryItem.getNumOfTrips()-1);
-    				if (this.deliveryItem.getNumOfTrips() == 0) {
+    				this.deliveryItem.setNTrips(this.deliveryItem.getNTrips()-1);
 	                    delivery.deliver(deliveryItem);
-	                    deliveryItem = null;
 	                    deliveryCounter++;
-    				}
+    				deliveryItem = null;
                     if(deliveryCounter > 2){  // Implies a simulation bug
                     	throw new ExcessiveDeliveryException();
                     }

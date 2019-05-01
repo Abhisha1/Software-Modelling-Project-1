@@ -60,7 +60,7 @@ public class Simulation {
 		MAIL_TO_CREATE = Integer.parseInt(automailProperties.getProperty("Mail_to_Create"));
         System.out.printf("Mail_to_Create: %5d%n", MAIL_TO_CREATE);
         // Mail_to_Create
-     	MAIL_MAX_WEIGHT = 3000;
+     	MAIL_MAX_WEIGHT = 2700;
         System.out.printf("Mail_Max_Weight: %5d%n", MAIL_MAX_WEIGHT);
 		// Last_Delivery_Time
 		Clock.LAST_DELIVERY_TIME = Integer.parseInt(automailProperties.getProperty("Last_Delivery_Time"));
@@ -98,11 +98,13 @@ public class Simulation {
         mailGenerator.generateAllMail();
         // PriorityMailItem priority;  // Not used in this version
         while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
-        	// System.out.printf("Delivered: %4d; Created: %4d%n", MAIL_DELIVERED.size(), mailGenerator.MAIL_TO_CREATE);
+        	 System.out.printf("Delivered: %4d; Created: %4d%n", MAIL_DELIVERED.size(), mailGenerator.MAIL_TO_CREATE);
             mailGenerator.step();
             try {
                 automail.mailPool.step();
-				for (int i=0; i<robots; i++) automail.robots[i].step();
+				for (int i=0; i<robots; i++) {
+					automail.robots[i].step();
+				}
 			} catch (ExcessiveDeliveryException|ItemTooHeavyException e) {
 				e.printStackTrace();
 				System.out.println("Simulation unable to complete.");
@@ -127,7 +129,9 @@ public class Simulation {
     			try {
     				throw new MailAlreadyDeliveredException();
     			} catch (MailAlreadyDeliveredException e) {
-    				e.printStackTrace();
+    				if(deliveryItem.getNTrips() < 0) {
+    					e.printStackTrace();
+    				}
     			}
     		}
     	}

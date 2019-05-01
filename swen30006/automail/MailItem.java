@@ -19,7 +19,7 @@ public class MailItem {
     /** The weight in grams of the mail item */
     protected final int weight;
     
-    protected int numOfTrips;
+    protected int nTrips;
 
     /**
      * Constructor for a MailItem
@@ -30,18 +30,18 @@ public class MailItem {
     public MailItem(int dest_floor, int arrival_time, int weight){
         this.destination_floor = dest_floor;
         this.id = String.valueOf(hashCode());
-        this.numOfTrips = 1;
         this.arrival_time = arrival_time;
         this.weight = weight;
+        this.nTrips = 1;
     }
     
-    public int getNumOfTrips() {
-    	return this.numOfTrips;
+    public int getNTrips() {
+    	return this.nTrips;
+    }
+    public void setNTrips(int nTrips) {
+    	this.nTrips= nTrips;
     }
 
-    public void setNumOfTrips(int nTrips) {
-    	this.numOfTrips = nTrips;
-    }
     @Override
     public String toString(){
         return String.format("Mail Item:: ID: %6s | Arrival: %4d | Destination: %2d | Weight: %4d", id, arrival_time, destination_floor, weight);
