@@ -38,9 +38,6 @@ public class MailItem {
     public int getNTrips() {
     	return this.nTrips;
     }
-    public void decrementNTrips() {
-    	this.nTrips--;
-    }
 
     @Override
     public String toString(){
@@ -88,5 +85,10 @@ public class MailItem {
 		Integer hash = hashMap.get(hash0);
 		if (hash == null) { hash = count++; hashMap.put(hash0, hash); }
 		return hash;
+	}
+
+	public void setNTrips(int i) {
+		this.nTrips = i;
+		
 	}
 }

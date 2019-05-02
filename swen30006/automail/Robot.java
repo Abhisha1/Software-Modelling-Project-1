@@ -30,6 +30,8 @@ public class Robot {
     
     private int deliveryCounter;
     
+    private Team team;
+    
 
     /**
      * Initiates the robot's location at the start to be at the mailroom
@@ -47,10 +49,25 @@ public class Robot {
         this.mailPool = mailPool;
         this.receivedDispatch = false;
         this.deliveryCounter = 0;
+        this.team = null;
     }
     
     public void dispatch() {
     	receivedDispatch = true;
+    }
+    public boolean inTeam() {
+    	if(team != null) {
+    		return true;
+    	}return false;
+    }
+    public void resetRobot() {
+    	this.team = null;
+    }
+    public void addTeam(Team t) {
+    	this.team = t;
+    }
+    public Team getTeam() {
+    	return this.team;
     }
 
     /**
@@ -92,6 +109,10 @@ public class Robot {
     				System.out.println("the n trips is "+this.deliveryItem.getNTrips()+" and id is "+ this.deliveryItem.getId());
     				if (this.deliveryItem.getNTrips() == 0) {
 	                    delivery.deliver(deliveryItem);
+    				}
+    				if (this.team != null) {
+    					this.team.step();
+    					break;
     				}
                     deliveryCounter++;
     				deliveryItem = null;
@@ -162,7 +183,12 @@ public class Robot {
 	public MailItem getTube() {
 		return tube;
 	}
-    
+	public MailItem getDeliveryItem() {
+		return this.deliveryItem;
+	}
+	public void resetDeliveryItem() {
+		this.deliveryItem = null;
+	}
 	static private int count = 0;
 	static private Map<Integer, Integer> hashMap = new TreeMap<Integer, Integer>();
 
@@ -199,5 +225,6 @@ public class Robot {
 		tube = mailItem;
 		if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
 	}
+	
 
 }

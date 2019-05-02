@@ -95,18 +95,19 @@ public class MailPool implements IMailPool {
 						robotsNeeded = 3;
 					}
 					nextMail.setNTrips(robotsNeeded);
-					Team team = new Team(robotsNeeded);
+					Team team = new Team(robotsNeeded, nextMail);
 					team.addRobot(robot);
 					i.forEachRemaining(r -> {
 						team.addRobot(r);
 					});
 					if (team.getRobots().size() == robotsNeeded) {
-						team.handleTeamHand(nextMail);
-						for (Robot r: team.getRobots()) {
-							r.dispatch();
-//							i.remove();
-						}
+						team.handleTeamHand();
 						j.remove();
+						
+					}
+					for (Robot r: team.getRobots()) {
+						r.dispatch();
+						i.remove();
 					}
 //					for (int k=1; k < robotsNeeded; k++) {
 //						if(i.hasNext()) {
