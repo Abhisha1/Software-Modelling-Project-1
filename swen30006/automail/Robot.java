@@ -78,7 +78,7 @@ public class Robot {
                 }
     		case WAITING:
                 /** If the StorageTube is ready and the Robot is waiting in the mailroom then start the delivery */
-                if(!isEmpty() && receivedDispatch){
+    			if(!isEmpty() && receivedDispatch){
                 	receivedDispatch = false;
                 	deliveryCounter = 0; // reset delivery counter
         			setRoute();
@@ -89,19 +89,24 @@ public class Robot {
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
     				this.deliveryItem.setNTrips(this.deliveryItem.getNTrips()-1);
+    				System.out.println("the n trips is "+this.deliveryItem.getNTrips()+" and id is "+ this.deliveryItem.getId());
+    				if (this.deliveryItem.getNTrips() == 0) {
 	                    delivery.deliver(deliveryItem);
-	                    deliveryCounter++;
+    				}
+                    deliveryCounter++;
     				deliveryItem = null;
                     if(deliveryCounter > 2){  // Implies a simulation bug
                     	throw new ExcessiveDeliveryException();
                     }
                     /** Check if want to return, i.e. if there is no item in the tube*/
                     if(tube == null){
+                    	System.out.println("return");
                     	changeState(RobotState.RETURNING);
                     }
                     else{
                         /** If there is another item, set the robot's route to the location to deliver the item */
-                        deliveryItem = tube;
+                        System.out.println("tube is not empty");
+                    	deliveryItem = tube;
                         tube = null;
                         setRoute();
                         changeState(RobotState.DELIVERING);
@@ -149,7 +154,8 @@ public class Robot {
     	}
     	current_state = nextState;
     	if(nextState == RobotState.DELIVERING){
-            System.out.printf("T: %3d > %7s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
+            System.out.printf("robo change stateT: %3d > %7s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
+            System.out.println(this.deliveryItem.getNTrips());
     	}
     }
 

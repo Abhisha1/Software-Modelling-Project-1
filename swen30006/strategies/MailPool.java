@@ -68,56 +68,67 @@ public class MailPool implements IMailPool {
 	}
 	
 	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException {
-		// System.out.printf("P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
 		Robot robot = i.next();
 		assert(robot.isEmpty());
 		if (pool.size() > 0) {
 			try {
-			robot.addToHand(j.next().mailItem); // hand first as we want higher priority delivered first
+			MailItem mail = j.next().mailItem;	
+			robot.addToHand(mail); // hand first as we want higher priority delivered first
 			j.remove();
 			if (pool.size() > 0) {
-				MailItem nextMail = j.next().mailItem;
-				robot.addToTube(nextMail);
+				mail = j.next().mailItem;
+				robot.addToTube(mail);
 				j.remove();
 			}
 			robot.dispatch(); // send the robot off if it has any items to deliver
 			i.remove();       // remove from mailPool queue
 			}
 			catch( ItemTooHeavyException e) {
-				j = pool.listIterator();
-				int robotsNeeded = 1;
-				MailItem nextMail = j.next().mailItem;
-				if (nextMail.getWeight() <=2600 && nextMail.getWeight()>2000) {
-					robotsNeeded = 2;
-				}
-				else if (nextMail.getWeight() <=3000) {
-					robotsNeeded = 3;
-				}
-				nextMail.setNTrips(robotsNeeded);
-				Team team = new Team(robotsNeeded);
-				team.addRobot(robot);
-				for (int k=1; k < robotsNeeded; k++) {
-					if(i.hasNext()) {
-						robot = i.next();
-						team.addRobot(robot);
-						i.remove();
+					j = pool.listIterator();
+					int robotsNeeded = 1;
+					MailItem nextMail = j.next().mailItem;
+					if (nextMail.getWeight() <=2600 && nextMail.getWeight()>2000) {
+						robotsNeeded = 2;
 					}
-				}
-				if (team.getRobots().size() != robotsNeeded) {
-					System.out.println("not enough avaluiable robots");
-					for(Robot r: team.getRobots()) {
-						i.add(r);
+					else if (nextMail.getWeight() <=3000) {
+						robotsNeeded = 3;
 					}
-				}
-				else {
-					team.handleTeamHand(nextMail);	
-					for (Robot r: team.getRobots()) {
-						r.dispatch();
+					nextMail.setNTrips(robotsNeeded);
+					Team team = new Team(robotsNeeded);
+					team.addRobot(robot);
+					i.forEachRemaining(r -> {
+						team.addRobot(r);
+					});
+					if (team.getRobots().size() == robotsNeeded) {
+						team.handleTeamHand(nextMail);
+						for (Robot r: team.getRobots()) {
+							r.dispatch();
+//							i.remove();
+						}
+						j.remove();
 					}
-					j.remove();
+//					for (int k=1; k < robotsNeeded; k++) {
+//						if(i.hasNext()) {
+//							robot = i.next();
+//							team.addRobot(robot);
+//							i.remove();
+//						}
+//					}
+//					if (team.getRobots().size() != robotsNeeded) {
+//						System.out.println("not enough avaluiable robots");
+//						for(Robot r: team.getRobots()) {
+//							i.add(r);
+//						}
+//					}
+//					else {
+//						team.handleTeamHand(nextMail);	
+//						for (Robot r: team.getRobots()) {
+//							r.dispatch();
+//						}
+//						j.remove();
+//					}
 				}
-			}
 			
 			
 			catch (Exception e) { 

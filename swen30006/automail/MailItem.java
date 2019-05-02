@@ -38,8 +38,8 @@ public class MailItem {
     public int getNTrips() {
     	return this.nTrips;
     }
-    public void setNTrips(int nTrips) {
-    	this.nTrips= nTrips;
+    public void decrementNTrips() {
+    	this.nTrips--;
     }
 
     @Override

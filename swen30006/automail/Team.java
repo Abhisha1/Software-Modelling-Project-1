@@ -32,6 +32,7 @@ public class Team {
 	public void handleTeamHand(MailItem mail) throws ItemTooHeavyException{
 		for (Robot r: robots) {
 			try {
+				System.out.println("TEAM HAND in rob funk");
 			r.addToHand(mail, this.robots.size());
 			}
 			catch(Exception e) {
