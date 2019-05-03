@@ -12,8 +12,6 @@ public class Team {
 
     private boolean delivered = false;
 
-    private int robotsReached = 0;
-
     private Set<String> robotsReachedSet = new HashSet<>();
 
     public Team(MailItem mailItem, IMailDelivery delivery) {
@@ -28,6 +26,7 @@ public class Team {
 
     }
 
+    // Dispatch the team
     public void start() {
         for(int i=0; i < robots.size(); i++) {
             robots.get(i).dispatch();
@@ -43,6 +42,7 @@ public class Team {
         robotsReachedSet.add(robot.id);
     }
 
+    // Get the count of robots who have reached the deliver room
     public int reachedRoom() {
         return robotsReachedSet.size();
     }

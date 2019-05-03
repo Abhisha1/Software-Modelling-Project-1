@@ -9,6 +9,7 @@ import automail.PriorityMailItem;
 import automail.Robot;
 import automail.Team;
 import exceptions.ItemTooHeavyException;
+import exceptions.NotEnoughRobotsException;
 
 public class MailPool implements IMailPool {
 
@@ -24,7 +25,9 @@ public class MailPool implements IMailPool {
 			this.mailItem = mailItem;
 		}
 	}
-	
+
+	private final int maxRobots;
+
 	public class ItemComparator implements Comparator<Item> {
 		@Override
 		public int compare(Item i1, Item i2) {
@@ -46,6 +49,7 @@ public class MailPool implements IMailPool {
 	private LinkedList<Robot> robots;
 
 	public MailPool(int nrobots){
+	    maxRobots = nrobots;
 		// Start empty
 		pool = new LinkedList<Item>();
 		robots = new LinkedList<Robot>();
@@ -88,6 +92,7 @@ public class MailPool implements IMailPool {
 					robot.dispatch(); // send the robot off if it has any items to deliver
 					i.remove();       // remove from mailPool queue
 				} else if(mailItem.getWeight() > 2000 && mailItem.getWeight() <= 2600) {
+					// deliver only if 2 robots are available
 					if(robots.size() >= 2) {
 						j.remove();
 						Team team = new Team(mailItem, robot.getDelivery());
@@ -98,7 +103,14 @@ public class MailPool implements IMailPool {
 						team.addRobot(robot);
 						i.remove();
 						team.start();
-					}
+					}else {
+						// If we can never get 2 robots throw an error
+						// other wise we shall prioritise this delivery less
+						// and wait till a robot is freed up
+					    if(maxRobots < 2) {
+                            throw  new NotEnoughRobotsException();
+                        }
+                    }
 				} else if(mailItem.getWeight() > 2600 && mailItem.getWeight() <= 3000) {
 					if(robots.size() >= 3) {
 						j.remove();
@@ -114,14 +126,23 @@ public class MailPool implements IMailPool {
 						team.addRobot(robot);
 						i.remove();
 						team.start();
-					}
+					}else {
+						// If we can never get 2 robots throw an error
+						// other wise we shall prioritise this delivery less
+						// and wait till a robot is freed up
+					    if(maxRobots < 3) {
+                            throw new NotEnoughRobotsException();
+                        }
+                    }
 
 				}else  {
 					throw new ItemTooHeavyException();
 				}
 
-			} catch (Exception e) { 
-	            throw e; 
+			} catch (NotEnoughRobotsException e) {
+			    System.err.println(e.getMessage());
+	            System.exit(1);
+
 	        } 
 		}
 	}

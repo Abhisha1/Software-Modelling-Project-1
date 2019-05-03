@@ -106,8 +106,11 @@ public class Robot {
                             throw new ExcessiveDeliveryException();
                         }
                     }else {
+                        // let the team know that this robot has reached
+                        // the room
                         team.reachRoom(this);
                         if(team.reachedRoom() >= team.size()) {
+                            // deliver the mailItem after all robots have reached the room
                             team.deliver();
 
                             deliveryItem = null;
@@ -133,6 +136,7 @@ public class Robot {
                         changeState(RobotState.DELIVERING);
                     }
     			} else {
+    			    // Teams move slower, by 1/3 of normal speed
 	        		if(inTeam) {
 	        		    teamTick++;
 	        		    if(teamTick == TEAM_TICK_DELAY) {
