@@ -103,13 +103,8 @@ public class MailGenerator {
      * This class initializes all mail and sets their corresponding values,
      */
     public void generateAllMail(){
-    	int teamCount = 0;
         while(!complete){
             MailItem newMail =  generateMail();
-            System.out.println(newMail.toString());
-            if(newMail.getWeight() > 2000) {
-            	teamCount++;
-            }
             int timeToDeliver = newMail.getArrivalTime();
             /** Check if key exists for this time **/
             if(allMail.containsKey(timeToDeliver)){
@@ -129,7 +124,6 @@ public class MailGenerator {
 
             /** Once we have satisfied the amount of mail to create, we're done!*/
             if(mailCreated == MAIL_TO_CREATE){
-            	System.out.format("created %d, mail needing robots are %d\n",mailCreated, teamCount);
                 complete = true;
             }
         }
@@ -145,7 +139,6 @@ public class MailGenerator {
     	// Check if there are any mail to create
         if(this.allMail.containsKey(Clock.Time())){
             for(MailItem mailItem : allMail.get(Clock.Time())){
-            	System.out.println(mailItem.getId());
             	if (mailItem instanceof PriorityMailItem) priority = ((PriorityMailItem) mailItem);
                 System.out.printf("T: %3d > new addToPool [%s]%n", Clock.Time(), mailItem.toString());
                 mailPool.addToPool(mailItem);

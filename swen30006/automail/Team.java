@@ -1,44 +1,62 @@
 package automail;
 
-import automail.Robot.RobotState;
 import exceptions.ItemTooHeavyException;
 
-import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.*;
 
 public class Team {
-	static public final int MAX_TEAM_SIZE = 3;
-	
-	private int nRobots;
-	
-	ArrayList<Robot> robots;
-	public Team(int nRobots){
-    	this.nRobots = nRobots;
-    	this.robots = new ArrayList<Robot>();
+
+    private ArrayList<Robot> robots = new ArrayList<>();
+    private IMailDelivery delivery;
+    private MailItem mailItem;
+
+    private boolean delivered = false;
+
+    private int robotsReached = 0;
+
+    private Set<String> robotsReachedSet = new HashSet<>();
+
+    public Team(MailItem mailItem, IMailDelivery delivery) {
+        this.mailItem = mailItem;
+        this.delivery = delivery;
     }
-	public ArrayList<Robot> getRobots(){
-		return this.robots;
-	}
-	public void setRobots(ListIterator<Robot> i){
-		for (int j=0; j < this.nRobots; j++) {
-			Robot robot = i.next();
-			assert(robot.isEmpty());
-			this.robots.add(robot);
-		}
-	}
-	public void addRobot(Robot r){
-		this.robots.add(r);
-	}
-	public void handleTeamHand(MailItem mail) throws ItemTooHeavyException{
-		for (Robot r: robots) {
-			try {
-				System.out.println("TEAM HAND in rob funk");
-			r.addToHand(mail, this.robots.size());
-			}
-			catch(Exception e) {
-				throw e;
-			}
-		}
-	}
+
+    public void addRobot(Robot robot) throws ItemTooHeavyException {
+        robots.add(robot);
+        robot.setTeam(this);
+        robot.addToHand(this.mailItem);
+
+    }
+
+    public void start() {
+        for(int i=0; i < robots.size(); i++) {
+            robots.get(i).dispatch();
+        }
+    }
+
+    public int size() {
+        return robots.size();
+    }
+
+
+    public void reachRoom(Robot robot) {
+        robotsReachedSet.add(robot.id);
+    }
+
+    public int reachedRoom() {
+        return robotsReachedSet.size();
+    }
+
+    public void deliver() {
+        if(!delivered) {
+            delivery.deliver(mailItem);
+            delivered = true;
+            for(int i=0; i < robots.size(); i++) {
+                robots.get(i).resetTeam();
+            }
+            robots.clear();
+        }
+    }
+
 
 }

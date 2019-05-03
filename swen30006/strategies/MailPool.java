@@ -68,70 +68,59 @@ public class MailPool implements IMailPool {
 	}
 	
 	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException {
-		ListIterator<Item> j = pool.listIterator();
 		Robot robot = i.next();
 		assert(robot.isEmpty());
+		// System.out.printf("P: %3d%n", pool.size());
+		ListIterator<Item> j = pool.listIterator();
 		if (pool.size() > 0) {
 			try {
-			MailItem mail = j.next().mailItem;	
-			robot.addToHand(mail); // hand first as we want higher priority delivered first
-			j.remove();
-			if (pool.size() > 0) {
-				mail = j.next().mailItem;
-				robot.addToTube(mail);
-				j.remove();
-			}
-			robot.dispatch(); // send the robot off if it has any items to deliver
-			i.remove();       // remove from mailPool queue
-			}
-			catch( ItemTooHeavyException e) {
-					j = pool.listIterator();
-					int robotsNeeded = 1;
-					MailItem nextMail = j.next().mailItem;
-					if (nextMail.getWeight() <=2600 && nextMail.getWeight()>2000) {
-						robotsNeeded = 2;
-					}
-					else if (nextMail.getWeight() <=3000) {
-						robotsNeeded = 3;
-					}
-					nextMail.setNTrips(robotsNeeded);
-					Team team = new Team(robotsNeeded);
-					team.addRobot(robot);
-					i.forEachRemaining(r -> {
-						team.addRobot(r);
-					});
-					if (team.getRobots().size() == robotsNeeded) {
-						team.handleTeamHand(nextMail);
-						for (Robot r: team.getRobots()) {
-							r.dispatch();
-//							i.remove();
+				MailItem mailItem = j.next().mailItem;
+				if(mailItem.getWeight() <= 2000) {
+					robot.addToHand(mailItem); // hand first as we want higher priority delivered first
+					j.remove();
+					if (pool.size() > 0) {
+						mailItem = j.next().mailItem;
+						if(mailItem.getWeight() <= 2000) {
+							robot.addToTube(mailItem);
+							j.remove();
 						}
-						j.remove();
 					}
-//					for (int k=1; k < robotsNeeded; k++) {
-//						if(i.hasNext()) {
-//							robot = i.next();
-//							team.addRobot(robot);
-//							i.remove();
-//						}
-//					}
-//					if (team.getRobots().size() != robotsNeeded) {
-//						System.out.println("not enough avaluiable robots");
-//						for(Robot r: team.getRobots()) {
-//							i.add(r);
-//						}
-//					}
-//					else {
-//						team.handleTeamHand(nextMail);	
-//						for (Robot r: team.getRobots()) {
-//							r.dispatch();
-//						}
-//						j.remove();
-//					}
+					robot.dispatch(); // send the robot off if it has any items to deliver
+					i.remove();       // remove from mailPool queue
+				} else if(mailItem.getWeight() > 2000 && mailItem.getWeight() <= 2600) {
+					if(robots.size() >= 2) {
+						j.remove();
+						Team team = new Team(mailItem, robot.getDelivery());
+						team.addRobot(robot);
+						i.remove();
+
+						robot = i.next();
+						team.addRobot(robot);
+						i.remove();
+						team.start();
+					}
+				} else if(mailItem.getWeight() > 2600 && mailItem.getWeight() <= 3000) {
+					if(robots.size() >= 3) {
+						j.remove();
+						Team team = new Team(mailItem, robot.getDelivery());
+						team.addRobot(robot);
+						i.remove();
+
+						robot = i.next();
+						team.addRobot(robot);
+						i.remove();
+
+						robot = i.next();
+						team.addRobot(robot);
+						i.remove();
+						team.start();
+					}
+
+				}else  {
+					throw new ItemTooHeavyException();
 				}
-			
-			
-			catch (Exception e) { 
+
+			} catch (Exception e) { 
 	            throw e; 
 	        } 
 		}

@@ -18,8 +18,6 @@ public class MailItem {
     protected final int arrival_time;
     /** The weight in grams of the mail item */
     protected final int weight;
-    
-    protected int nTrips;
 
     /**
      * Constructor for a MailItem
@@ -32,14 +30,6 @@ public class MailItem {
         this.id = String.valueOf(hashCode());
         this.arrival_time = arrival_time;
         this.weight = weight;
-        this.nTrips = 1;
-    }
-    
-    public int getNTrips() {
-    	return this.nTrips;
-    }
-    public void decrementNTrips() {
-    	this.nTrips--;
     }
 
     @Override

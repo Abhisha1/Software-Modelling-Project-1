@@ -14,6 +14,7 @@ public class Robot {
     static public final int INDIVIDUAL_MAX_WEIGHT = 2000;
     static public final int PAIR_MAX_WEIGHT = 2600;
     static public final int TRIPLE_MAX_WEIGHT = 3000;
+    static public final int TEAM_TICK_DELAY = 3;
 
     IMailDelivery delivery;
     protected final String id;
@@ -27,6 +28,11 @@ public class Robot {
     
     private MailItem deliveryItem = null;
     private MailItem tube = null;
+
+    private Team team = null;
+    private boolean inTeam = false;
+
+    private int teamTick = 0;
     
     private int deliveryCounter;
     
@@ -47,6 +53,10 @@ public class Robot {
         this.mailPool = mailPool;
         this.receivedDispatch = false;
         this.deliveryCounter = 0;
+    }
+
+    public IMailDelivery getDelivery() {
+        return delivery;
     }
     
     public void dispatch() {
@@ -78,7 +88,7 @@ public class Robot {
                 }
     		case WAITING:
                 /** If the StorageTube is ready and the Robot is waiting in the mailroom then start the delivery */
-    			if(!isEmpty() && receivedDispatch){
+                if(!isEmpty() && receivedDispatch){
                 	receivedDispatch = false;
                 	deliveryCounter = 0; // reset delivery counter
         			setRoute();
@@ -87,33 +97,52 @@ public class Robot {
                 break;
     		case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
-                    /** Delivery complete, report this to the simulator! */
-    				this.deliveryItem.setNTrips(this.deliveryItem.getNTrips()-1);
-    				System.out.println("the n trips is "+this.deliveryItem.getNTrips()+" and id is "+ this.deliveryItem.getId());
-    				if (this.deliveryItem.getNTrips() == 0) {
-	                    delivery.deliver(deliveryItem);
-    				}
-                    deliveryCounter++;
-    				deliveryItem = null;
-                    if(deliveryCounter > 2){  // Implies a simulation bug
-                    	throw new ExcessiveDeliveryException();
+                    if(!inTeam) {
+                        /** Delivery complete, report this to the simulator! */
+                        delivery.deliver(deliveryItem);
+                        deliveryItem = null;
+                        deliveryCounter++;
+                        if(deliveryCounter > 2){  // Implies a simulation bug
+                            throw new ExcessiveDeliveryException();
+                        }
+                    }else {
+                        team.reachRoom(this);
+                        if(team.reachedRoom() >= team.size()) {
+                            team.deliver();
+
+                            deliveryItem = null;
+                            deliveryCounter++;
+                            if(deliveryCounter > 2){  // Implies a simulation bug
+                                throw new ExcessiveDeliveryException();
+                            }
+                        }
+
                     }
+
+
+
                     /** Check if want to return, i.e. if there is no item in the tube*/
                     if(tube == null){
-                    	System.out.println("return");
                     	changeState(RobotState.RETURNING);
                     }
                     else{
                         /** If there is another item, set the robot's route to the location to deliver the item */
-                        System.out.println("tube is not empty");
-                    	deliveryItem = tube;
+                        deliveryItem = tube;
                         tube = null;
                         setRoute();
                         changeState(RobotState.DELIVERING);
                     }
     			} else {
-	        		/** The robot is not at the destination yet, move towards it! */
-	                moveTowards(destination_floor);
+	        		if(inTeam) {
+	        		    teamTick++;
+	        		    if(teamTick == TEAM_TICK_DELAY) {
+	        		        teamTick = 0;
+	        		        moveTowards(destination_floor);
+                        }
+                    }else {
+                        /** The robot is not at the destination yet, move towards it! */
+                        moveTowards(destination_floor);
+                    }
     			}
                 break;
     	}
@@ -154,8 +183,7 @@ public class Robot {
     	}
     	current_state = nextState;
     	if(nextState == RobotState.DELIVERING){
-            System.out.printf("robo change stateT: %3d > %7s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
-            System.out.println(this.deliveryItem.getNTrips());
+            System.out.printf("T: %3d > %7s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
     	}
     }
 
@@ -181,17 +209,11 @@ public class Robot {
 	public void addToHand(MailItem mailItem) throws ItemTooHeavyException {
 		assert(deliveryItem == null);
 		deliveryItem = mailItem;
-		if (deliveryItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
-	}
-	public void addToHand(MailItem mailItem, int nRobots) throws ItemTooHeavyException {
-		assert(deliveryItem == null);
-		deliveryItem = mailItem;
-		if (nRobots == 2 && deliveryItem.weight > PAIR_MAX_WEIGHT) {
-			throw new ItemTooHeavyException();
-		}
-		else if (nRobots == 3 && deliveryItem.weight > TRIPLE_MAX_WEIGHT) {
-			throw new ItemTooHeavyException();
-		}
+		if(!inTeam) {
+            if (deliveryItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
+            return;
+        }
+
 	}
 
 	public void addToTube(MailItem mailItem) throws ItemTooHeavyException {
@@ -199,5 +221,14 @@ public class Robot {
 		tube = mailItem;
 		if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
 	}
+
+	public void resetTeam() {
+	    this.team = null;
+	    this.inTeam = false;
+    }
+	public void setTeam(Team team) {
+	    this.team = team;
+	    this.inTeam = true;
+    }
 
 }
